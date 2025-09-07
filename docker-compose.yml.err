@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: strapi123
+      POSTGRES_DB: strapidb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - web
+
+  strapi:
+    build: ./strapi
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: production
+      DATABASE_CLIENT: postgres
+      DATABASE_NAME: strapidb
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi123
+      CLIENT_URL: https://prems.in
+      PREVIEW_SECRET: sk_live_9f3b2c1e7a4f
+      JWT_SECRET: /3lU8pZloM07XZv7lLQNLw==
+      API_TOKEN_SALT: FQah0BSweIVlTUIEk17C/A==
+      ADMIN_JWT_SECRET: g1bKIvvg/XZePI/fwPbGzA==
+
+      # Add both domains so SSL covers api.prems.in + prems.in
+      VIRTUAL_HOST: api.prems.in
+      LETSENCRYPT_HOST: api.prems.in,prems.in
+      LETSENCRYPT_EMAIL: prem@prems.in
+
+      VIRTUAL_PORT: 1337   # Strapi default
+    volumes:
+      - strapi-uploads:/app/public/uploads
+    restart: always
+    networks:
+      - web
+
+  nextjs:
+    build: ./next
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.prems.in
+      PREVIEW_SECRET: sk_live_9f3b2c1e7a4f
+
+      # Handle root domain
+      VIRTUAL_HOST: prems.in
+      LETSENCRYPT_HOST: api.prems.in,prems.in
+      LETSENCRYPT_EMAIL: prem@prems.in
+
+      VIRTUAL_PORT: 3000
+    expose:
+      - "3000"  
+    volumes:
+      - next-data:/app
+    restart: always
+    networks:
+      - web
+
+  nginx:
+    container_name: nginx
+    image: nginxproxy/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - acme:/etc/acme.sh
+      - nginx-challenges:/usr/share/nginx/html/.well-known/acme-challenge
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    restart: always
+    networks:
+      - web
+
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: letsencrypt
+    depends_on:
+      - nginx
+    environment:
+      NGINX_PROXY_CONTAINER: nginx
+      DEFAULT_EMAIL: prem@prems.in
+    volumes:
+      - acme:/etc/acme.sh
+      - nginx-challenges:/usr/share/nginx/html/.well-known/acme-challenge
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    restart: always
+    networks:
+      - web
+
+volumes:
+  strapi-uploads:
+  next-data:
+  pgdata:
+  nginx-certs:
+  nginx-vhost:
+  nginx-html:
+  acme:
+  nginx-challenges:  
+
+networks:
+  web:
+    external: false

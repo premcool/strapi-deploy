@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  strapi:
+    build: ./strapi
+    environment:
+      NODE_ENV: production
+      CLIENT_URL: https://prems.in
+      PREVIEW_SECRET: sk_live_9f3b2c1e7a4f
+      JWT_SECRET: /3lU8pZloM07XZv7lLQNLw==
+      API_TOKEN_SALT: FQah0BSweIVlTUIEk17C/A==
+      ADMIN_JWT_SECRET: g1bKIvvg/XZePI/fwPbGzA==
+      VIRTUAL_HOST: api.prems.in
+      VIRTUAL_PORT: 1337   # Strapi default
+    volumes:
+      - strapi-uploads:/app/public/uploads
+      - strapi-sqlite:/app/.tmp   # store SQLite DB persistently
+    restart: always
+    networks:
+      - web
+
+  nextjs:
+    build: ./next
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.prems.in
+      PREVIEW_SECRET: sk_live_9f3b2c1e7a4f
+      VIRTUAL_HOST: prems.in
+      VIRTUAL_PORT: 3000
+      LETSENCRYPT_HOST: prems.in,api.prems.in   # SSL handled here only
+      LETSENCRYPT_EMAIL: prem@prems.in
+    expose:
+      - "3000"
+    volumes:
+      - next-data:/app
+    restart: always
+    networks:
+      - web
+
+  nginx:
+    container_name: nginx
+    image: nginxproxy/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - acme:/etc/acme.sh
+      - nginx-challenges:/usr/share/nginx/html/.well-known/acme-challenge
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    restart: always
+    networks:
+      - web
+
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: letsencrypt
+    depends_on:
+      - nginx
+    environment:
+      NGINX_PROXY_CONTAINER: nginx
+      DEFAULT_EMAIL: prem@prems.in
+    volumes:
+      - acme:/etc/acme.sh
+      - nginx-challenges:/usr/share/nginx/html/.well-known/acme-challenge
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    restart: always
+    networks:
+      - web
+
+volumes:
+  strapi-uploads:
+  strapi-sqlite:
+  next-data:
+  nginx-certs:
+  nginx-vhost:
+  nginx-html:
+  acme:
+  nginx-challenges:
+
+networks:
+  web:
+    external: false
