@@ -11,10 +11,10 @@ services:
       API_TOKEN_SALT: FQah0BSweIVlTUIEk17C/A==
       ADMIN_JWT_SECRET: g1bKIvvg/XZePI/fwPbGzA==
       VIRTUAL_HOST: api.prems.in
-      VIRTUAL_PORT: 1337   # Strapi default
+      VIRTUAL_PORT: 1337 # Strapi default
     volumes:
-      - strapi-uploads:/app/public/uploads
-      - strapi-sqlite:/app/.tmp   # store SQLite DB persistently
+      - strapi-public:/app/public
+      - strapi-sqlite:/app/.tmp # store SQLite DB persistently
     restart: always
     networks:
       - web
@@ -27,10 +27,10 @@ services:
       PREVIEW_SECRET: sk_live_9f3b2c1e7a4f
       VIRTUAL_HOST: prems.in
       VIRTUAL_PORT: 3000
-      LETSENCRYPT_HOST: prems.in,api.prems.in   # SSL handled here only
+      LETSENCRYPT_HOST: prems.in,api.prems.in # SSL handled here only
       LETSENCRYPT_EMAIL: prem@prems.in
     expose:
-      - "3000"
+      - '3000'
     volumes:
       - next-data:/app
     restart: always
@@ -41,8 +41,8 @@ services:
     container_name: nginx
     image: nginxproxy/nginx-proxy
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - acme:/etc/acme.sh
       - nginx-challenges:/usr/share/nginx/html/.well-known/acme-challenge
@@ -74,7 +74,7 @@ services:
       - web
 
 volumes:
-  strapi-uploads:
+  strapi-public:
   strapi-sqlite:
   next-data:
   nginx-certs:
