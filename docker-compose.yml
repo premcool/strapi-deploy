@@ -3,7 +3,7 @@ version: '3.8'
 services:
   strapi:
     build: ./strapi
-    env_file: .env
+    env_file: .env.strapi
     volumes:
       - strapi-public:/app/public
       - strapi-sqlite:/app/.tmp
@@ -13,7 +13,7 @@ services:
 
   nextjs:
     build: ./next
-    env_file: .env
+    env_file: .env.nextjs
     expose:
       - '3000'
     volumes:
@@ -44,7 +44,7 @@ services:
     container_name: letsencrypt
     depends_on:
       - nginx
-    env_file: .env
+    env_file: .env.letsencrypt
     volumes:
       - acme:/etc/acme.sh
       - nginx-challenges:/usr/share/nginx/html/.well-known/acme-challenge
