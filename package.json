@@ -20,7 +20,9 @@
     "lint-staged": "lint-staged"
   },
   "dependencies": {
-    "@types/node": "^22.5.2",
+    "@strapi/plugin-email": "^5.0.0-beta.5",
+    "@strapi/provider-email-sendmail": "^5.23.4",
+    "@types/node": "^20.19.5",
     "typescript": "^5.0.0",
     "wait-on": "^8.0.1"
   },
