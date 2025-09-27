@@ -22,12 +22,8 @@ export const Footer = async ({
             <div className="mt-4">{data?.copyright}</div>
             <div className="mt-10">
               Designed and Developed by{' '}
-              <a className="text-white underline" href="https://aceternity.com">
-                Aceternity
-              </a>{' '}
-              &{' '}
-              <a className="text-white underline" href="https://strapi.io">
-                Strapi
+              <a className="text-white underline" href="https://prems.in">
+                Prem Saktheesh
               </a>
             </div>
             <div className="mt-2">
