@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  prolysi:
+    build:
+      context: /home/prolysi/prolysi-ai-ventures
+      dockerfile: Dockerfile
+    container_name: prolysi
+    env_file: .env.prolysi
+    environment:
+      - VIRTUAL_HOST=prolysi.com     # 👈 REQUIRED
+      - VIRTUAL_PORT=80                 # 👈 Must match EXPOSE in Dockerfile
+    expose:
+      - "80"                            # 👈 Required for nginx-proxy to detect
+    restart: always
+    networks:
+      - web  
+
   strapi:
     build: ./strapi
     env_file: .env.strapi
